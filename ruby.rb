@@ -44,17 +44,38 @@ class Knight
         board 
     end
 
-    def build_paths(starting)
+    def build_paths(starting, destination, queue = [Step.new(starting)])
+        current = queue.shift
+        puts starting == destination
         return nil if !valid_move(starting) || !@available_positions.include?(starting)
-        @path = Step.new(starting)
-        puts "path: #{@path}"
+        #return "you made it" if starting
+        if current.position == destination
+            puts "you made it"
+            return
+        end
+        #node = Step.new(starting)
+        all_moves = find_moves(starting)
         @available_positions.delete_if { |x| x == starting } #remove location from remaining options
+        
+        all_moves.each do |move|
+            child = Step.new(move)
+            child.parent = current
+            queue << child
+            build_paths(starting, destination, queue)
+        end
+        
+    end 
+    
+    def find_moves(starting, all_moves = [])
         @@moves.each do |move|
             next_move = [starting[0]+move[0], starting[1]+move[1]]
-            @path.children.push(build_paths(next_move))
+            all_moves << next_move unless !valid_move(next_move)
         end
-        next_move
-    end 
+        
+        puts "allmoves: #{all_moves}"
+        all_moves
+    end
+
 
 
     def build_tree(array)
@@ -86,8 +107,7 @@ class Knight
 
     def knight_moves(starting, ending)
         
-        build_paths(starting)
-        puts "chillens #{@path.children}"
+        build_paths(starting, ending)
         #build_tree()
         #puts "You made it in 3 moves! Heres your path:"
 
