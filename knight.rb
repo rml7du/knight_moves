@@ -9,10 +9,10 @@ class Knight
     end
     
     def add_node(node)
-      @nodes[node.value] = node
+      @nodes[node.position] = node
     end
     
-    def add_edge(node1, node2)
+    def add_edge(node1.position, node2.position)
       @nodes[node1].add_edge(@nodes[node2])
       @nodes[node2].add_edge(@nodes[node1])
     end
