@@ -2,7 +2,7 @@ require_relative "node.rb"
 require_relative "board.rb"
 
 class Knight
-
+    attr_accessor :nodes
   
     def initialize
       @nodes = {}

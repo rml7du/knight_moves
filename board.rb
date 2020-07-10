@@ -7,6 +7,7 @@ class Board #could also be called Graph
     @@moves = [ [-1,2], [1,2], [2,1], [2,-1], [1,-2], [-1,-2], [-2,-1], [-2,1] ]
 
     def initialize(num)
+        @knight = Knight.new
         @available_positions = []
         @nodes = {}
         @visited = []
@@ -27,8 +28,7 @@ class Board #could also be called Graph
             print x.position
             puts "\nparent:"
             print x.parent.position unless x.parent == nil
-            puts "\nedges:"
-            print x.adjacent_nodes
+            
         end
     end
 
@@ -41,7 +41,7 @@ class Board #could also be called Graph
         all_moves.each do |move|
             child = Node.new(move)
             child.parent = current
-            current.add_edge(child)
+            @knight.add_edge(current, child)
             @queue << child
             build_graph(child)
         end
