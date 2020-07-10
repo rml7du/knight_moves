@@ -1,6 +1,6 @@
 
 class Node
-    attr_accessor :position, :parent
+    attr_accessor :position, :parent, :adjacent_nodes
 
     def initialize(position)
         @position = position
