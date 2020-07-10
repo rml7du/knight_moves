@@ -22,16 +22,16 @@ class Board #could also be called Graph
     
 
     def build_graph(current = Node.new([1,1])) #creates graph of possible moves and links together
-        return nil if !valid_move(current.position) || @visited.include?(current.position)
         all_moves = find_moves(current)
         @available_positions.delete_if { |x| x == current } #remove location from remaining options
-        
+        @visited << current.position
         all_moves.each do |move|
             child = Node.new(move)
             child.parent = current
             current.add_edge(child)
             build_graph(child)
         end
+        
     end
 
     def build_board(num)
@@ -48,7 +48,7 @@ class Board #could also be called Graph
         current = current.position
         @@moves.each do |move|
             next_move = [current[0]+move[0], current[1]+move[1]]
-            all_moves << next_move unless !valid_move(next_move)
+            all_moves << next_move unless !valid_move(next_move) || @visited.include?(next_move)
         end
         
         puts "allmoves: #{all_moves}"
