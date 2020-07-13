@@ -14,7 +14,8 @@ class Board #could also be called Graph
         @queue = []
         build_board(num)
         build_graph()
-        print_queue()
+        #print_queue()
+        print @knight.nodes
     end
 
     def add_node(node)
@@ -34,6 +35,8 @@ class Board #could also be called Graph
 
     def build_graph(current = Node.new([1,1])) #creates graph of possible moves and links together
         return if @visited.length == 64
+        @knight.add_node(current) if current.position == [1,1]
+        #puts @knight.nodes
         all_moves = find_moves(current)
         @available_positions.delete_if { |x| x == current.position } #remove location from remaining options
         @visited << current.position
@@ -41,7 +44,8 @@ class Board #could also be called Graph
         all_moves.each do |move|
             child = Node.new(move)
             child.parent = current
-            @knight.add_edge(current, child)
+            @knight.add_node(child)
+            @knight.add_edges(current.position, child.position)
             @queue << child
             build_graph(child)
         end
@@ -65,9 +69,6 @@ class Board #could also be called Graph
             next_move = [current[0]+move[0], current[1]+move[1]]
             all_moves << next_move unless !valid_move(next_move) || @visited.include?(next_move) || all_moves.include?(next_move)
         end
-        #print "available positions #{@available_positions}\n"
-        #print "visited #{@visited}\n"
-        puts "allmoves: #{all_moves}"
         all_moves
     end
 
