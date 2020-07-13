@@ -1,168 +1,88 @@
-
 class Node
-    attr_accessor :x, :y, :position, :coordinants, :left, :right
-    def initialize(x, y)
-        @position = [x,y]
-        @left = nil
-        @right = nil
-        @x = position[0]
-        @y = position[1]
-        @coordinants = "[#{@x},#{@y}]"
+    attr_accessor :x, :y, :child_list, :parent_node
+
+    def initialize(x,y)
+        @x=x
+        @y=y
+        @child_list =[]
+        @parent_node = nil
     end
 end
 
-class Step
-    attr_accessor :position, :children, :parent
+class Board
+    attr_accessor :cell_list
 
-    def initialize(position, children = nil, parent = nil)
-        @position = position
-        @children = []
-        @parent = parent
+    def initialize(num)
+        @cell_list = []
+        (1..num).each { |x| (1..num).each { |y| @cell_list.push( Node.new(x,y) ) } } 
     end
 end
-
 
 class Knight
-    attr_accessor :board
 
-    @@moves = [ [-1,2], [1,2], [2,1], [2,-1], [1,-2], [-1,-2], [-2,-1], [-2,1] ]
-
-    def initialize()
-        @available_positions =  []
-        @board = build_board()
-        @root = build_tree(@board)
-        @path = nil
+    def initialize
+        @allMoves = Board.new(8)
+        @allMoves.cell_list.each { |cell| set_children(cell)}
     end
 
-    def build_board()
-        #create 64 nodes
-        board = []
-        8.times do |x|
-            8.times { |y| board.push( Node.new(x+1, y+1) ) }
-        end
-        board.each { |node| @available_positions.push(node.position) }
-        board 
+    def set_children(node)
+        node.child_list.push(node_at(node.x+2,node.y-1)) unless node_at(node.x+2,node.y-1).nil?
+        node.child_list.push(node_at(node.x+2,node.y+1)) unless node_at(node.x+2,node.y+1).nil?
+        node.child_list.push(node_at(node.x+1,node.y-2)) unless node_at(node.x+1,node.y-2).nil?
+        node.child_list.push(node_at(node.x+1,node.y+2)) unless node_at(node.x+1,node.y+2).nil?
+        node.child_list.push(node_at(node.x-1,node.y-2)) unless node_at(node.x-1,node.y-2).nil?
+        node.child_list.push(node_at(node.x-1,node.y+2)) unless node_at(node.x-1,node.y+2).nil?
+        node.child_list.push(node_at(node.x-2,node.y-1)) unless node_at(node.x-2,node.y-1).nil?
+        node.child_list.push(node_at(node.x-2,node.y+1)) unless node_at(node.x-2,node.y+1).nil?
     end
 
-    def build_paths(starting, destination, queue = [Step.new(starting)])
-        current = queue.shift
-        puts starting == destination
-        return nil if !valid_move(starting) || !@available_positions.include?(starting)
-        #return "you made it" if starting
-        if current.position == destination
-            puts "you made it"
-            return
-        end
-        #node = Step.new(starting)
-        all_moves = find_moves(starting)
-        @available_positions.delete_if { |x| x == starting } #remove location from remaining options
-        
-        all_moves.each do |move|
-            child = Step.new(move)
-            child.parent = current
-            queue << child
-            build_paths(starting, destination, queue)
-        end
-        
-    end 
-    
-    def find_moves(starting, all_moves = [])
-        @@moves.each do |move|
-            next_move = [starting[0]+move[0], starting[1]+move[1]]
-            all_moves << next_move unless !valid_move(next_move)
-        end
-        
-        puts "allmoves: #{all_moves}"
-        all_moves
+    def node_at(x,y)
+        return x.between?(1,8) && y.between?(1,8) ? @allMoves.cell_list.find { |node| node.x == x && node.y == y} : nil
     end
 
-
-
-    def build_tree(array)
-        return if array.empty?
-        center = array.length/2
-        node = array[center]
-        node.left = build_tree(array[0...center])
-        node.right = build_tree(array[center+1..-1])
-        node
+    def knight_moves(origin, target)
+        origin_node = node_at(origin[0],origin[1])
+        target_node = node_at(target[0],target[1])
+        node_found = breadth_first_search(origin_node, target_node)
+        total_moves(node_found, target_node)
     end
 
-    def valid_move(starting)
-        if starting[0] <= 0 || starting[1] <= 0 || starting[0] > 8 || starting[1] > 8
-            return false
+    def total_moves(node, origin)
+        moves = []
+
+        until node == origin
+            moves.push([node.x, node.y])
+            node = node.parent_node
         end
-        true
+        moves.push([node.x, node.y])
+
+        puts "you made it in #{moves.length - 1} moves! Here is your path:"
+        moves.reverse.each {|coord| print coord }
+        @allMoves.cell_list.each { |node| node.parent_node = nil }
     end
-    
-    def depth(node = @root) 
-        return 0 if node == nil
-        left_depth = depth(node.left)
-        right_depth = depth(node.right)
-        if left_depth > right_depth
-            return left_depth + 1
-        else 
-            return right_depth + 1
+
+    def set_parent_node(node)
+        node.child_list.each { |child| child.parent_node = node if child.parent_node.nil? }
+    end
+
+    def breadth_first_search(origin, target)
+        queue = [origin]
+        until queue.empty?
+            node = queue.shift
+
+            if node.x == target.x && node.y == target.y
+                return node
+            else
+                set_parent_node(node)
+                queue = queue + node.child_list
+            end
         end
     end
 
-    def knight_moves(starting, ending)
-        
-        build_paths(starting, ending)
-        #build_tree()
-        #puts "You made it in 3 moves! Heres your path:"
-
-        #puts @available_positions.include?(starting)
-        #@available_positions.delete_if { |x| x == starting } #remove location from remaining options
-        #puts @available_positions.include?(starting)
-        #print @available_positions
-    end 
-
-    def inorder(node = @root)
-        return nil if node == nil
-        inorder(node.left)
-        print "#{node.coordinants} -> "
-        inorder(node.right)
-    end
-
-    def search()
-    end
 end
 
-wyatt = Knight.new()
-#knight.board.each { |n| puts "#{n.coordinants}" }
+knight = Knight.new
 
-wyatt.knight_moves([1,1], [8,8])
-
-#knight_moves([3,3], [4,3])
-
-
-=begin
-#create 64 nodes
-board = []
-8.times do |x|
-    8.times { |y| board.push( Node.new(x+1, y+1) ) }
-end
-
-board.each { |n| puts "#{n.coordinants}" }
-
-tree = Tree.new(board)
-
-tree.inorder()
-
-
-
-board = Array.new(8, Array.new(8))
-puts board
-
-x = 7
-y = 0
-while x > 0
-    while y < 8
-        board[x].push(Node.new(x+1,y+1))
-        y+=1
-    end
-    x-=1
-end
-
-board.each { |n|  print "#{n}\n" } 
-=end
+knight.knight_moves([1,1], [8,8])
+knight.knight_moves([5,1], [8,8])
+knight.knight_moves([4,7], [2,3])
